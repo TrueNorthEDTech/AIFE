@@ -10,6 +10,7 @@ import { supabase } from '../lib/supabase';
 // Blue   = AGENCY (Meso / Curriculum)   #357DB8
 // Green  = PROMPT (Micro / Classroom)   #5BB76A
 
+// Framework data sourced directly from Designing for AGENCY (2026) by Norman, Garvin & Pelletier
 const frameworks = [
     {
         id: 'RISE',
@@ -21,18 +22,18 @@ const frameworks = [
         textColor: 'text-orange-600',
         badgeColor: 'bg-orange-100 text-orange-700',
         title: 'RISE',
-        subtitle: 'Reimagine · Implement · Sustain · Evaluate',
-        description: 'The institutional framework for school leaders navigating systemic AI transformation. RISE guides schools away from reactive, fear-based AI policies toward a proactive culture of authentic human agency.',
+        subtitle: 'Readiness · Implementation Ability · Strategic Alignment · Ethical Foundation',
+        description: 'The architectural blueprint for institutional change. RISE is the governance framework that moves institutions from reactive AI bans toward a strategic, human-centred structure anchored to their True North — mission, values, and strategic goals.',
         keyIdeas: [
-            'Path of Control vs. Path of Agency',
-            'Pioneer Mindset for institutional change',
-            'Non-negotiable core values as your True North',
-            'Shifting saved time back to human connection',
+            'R: Readiness Assessment — building awareness and desire before adoption',
+            'I: Implementation Ability — knowledge, coaching, and time for execution',
+            'S: Strategic Alignment — every initiative tied to your True North',
+            'E: Ethical Foundation — Human-in-the-Loop governance and the Human-First Protocol',
         ],
     },
     {
         id: 'AGENCY',
-        level: 'Meso · Curriculum',
+        level: 'Meso · Pedagogical',
         icon: Users,
         color: '#357DB8',
         bgColor: 'bg-blue-50',
@@ -40,13 +41,15 @@ const frameworks = [
         textColor: 'text-blue-600',
         badgeColor: 'bg-blue-100 text-blue-700',
         title: 'AGENCY',
-        subtitle: 'Authentic learning for a human-centred future',
-        description: 'The curriculum design framework that empowers educators to redesign their courses so AI augments—rather than replaces—the cognitive and creative work of students.',
+        subtitle: 'Assess · Guide · Empower · Network · Critique · Your Voice',
+        description: 'The six-step pedagogical flywheel for educators. AGENCY engineers the human-AI interaction so students move from passive consumption to active, critical creation — counteracting cognitive offloading and hollow authenticity.',
         keyIdeas: [
-            'Students as Architects, not Consumers',
-            'Designing tasks AI cannot simply complete',
-            'Metacognitive depth as the new literacy',
-            'Assessment that values the human process',
+            'A: Assess — define the core human skill the lesson builds',
+            'G: Guide — structure purposeful AI interactions with scaffolding',
+            'E: Empower — move students from consumption to tangible creation',
+            'N: Network — mandate unmediated human collaboration (Human-First Protocol)',
+            'C: Critique — students become the ethical auditors of AI output',
+            "Y: Your Voice — centre the student's unique perspective in the final product",
         ],
     },
     {
@@ -59,13 +62,15 @@ const frameworks = [
         textColor: 'text-green-600',
         badgeColor: 'bg-green-100 text-green-700',
         title: 'PROMPT',
-        subtitle: 'Practical AI practices for the everyday classroom',
-        description: 'Actionable in-class strategies that help teachers and students use AI as a genuine thinking partner — building critical evaluation skills, creative depth, and ethical awareness.',
+        subtitle: 'Purpose · Relationship · Outcome · Method · Parameters · Test & Refine',
+        description: "The tactical steering wheel. PROMPT is a structured briefing language that keeps the human firmly in the pilot's seat — transforming vague AI requests into intentional, agentic goals and preventing vending-machine usage of AI.",
         keyIdeas: [
-            'Prompt engineering as a new writing skill',
-            'AI as a study partner, not a shortcut',
-            'Building habits of verification and critique',
-            'Ethical use and academic integrity in practice',
+            'P: Purpose — define intent and link to the pedagogical why',
+            'R: Relationship — establish context and cast AI in a specific role',
+            'O: Outcome — specify the exact format and artifact expected',
+            "M: Method — embed pedagogical models (e.g. Bloom's Taxonomy) in the AI instructions",
+            'P: Parameters & Ethical Checkpoints — set the boundaries and safety guardrails',
+            'T: Test & Refine — the first output is only a first draft; the human remains quality control',
         ],
     },
 ];
