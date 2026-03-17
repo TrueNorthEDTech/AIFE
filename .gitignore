@@ -12,6 +12,11 @@ dist
 dist-ssr
 *.local
 
+# Large files (PDFs already extracted to api/knowledge/)
+public/*.pdf
+public/book_knowledge.txt
+public/slides_knowledge.txt
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
