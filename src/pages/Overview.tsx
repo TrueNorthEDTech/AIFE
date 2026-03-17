@@ -91,13 +91,19 @@ export default function Overview() {
     const handleWaitlistSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!email) return;
+
+        // Log for the prototype demo
+        console.log('Waitlist Signup:', email);
+
         try {
-            if (import.meta.env.VITE_SUPABASE_URL) {
+            if (import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_ANON_KEY) {
                 await supabase.from('waitlist').insert([{ email, source: 'AIFE_Prototype' }]);
             }
             setSubmitted(true);
             setEmail('');
-        } catch {
+        } catch (err) {
+            console.error('Supabase Error (optional):', err);
+            // Still show success for the prototype demo
             setSubmitted(true);
             setEmail('');
         }
