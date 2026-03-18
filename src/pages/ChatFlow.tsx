@@ -97,7 +97,7 @@ export default function ChatFlow() {
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
     // Vercel AI SDK Hook
-    const { messages, input, handleInputChange, handleSubmit, setMessages, isLoading, error, append } = useChat({
+    const { messages, input = '', handleInputChange, handleSubmit, setMessages, isLoading, error, append } = useChat({
         api: '/api/chat',
         initialMessages: [
             {
