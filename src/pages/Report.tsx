@@ -9,11 +9,13 @@ type ReportData = {
     role: string;
     framework: string;
     stage: string;
+    trustScore?: string; // 0-100 indicating Agency vs Fear
     summary: string;
     strengths: string[];
     actions: { timeline: string; title: string; description: string }[];
     stakeholders: { role: string; strategy: string }[];
     bookReferences: { concept: string; chapter: string; application: string }[];
+    pilot2026?: { recommended: boolean; why: string; cta: string };
     nextSteps: string;
 };
 
@@ -27,10 +29,12 @@ const DEFAULT_REPORT: ReportData = {
     role: "Educator",
     framework: "AGENCY",
     stage: "Developing",
-    summary: "Based on your session with Glowie, you're exploring how AI can support meaningful learning agency. You're thinking carefully about both the opportunities and the human dimensions that need to stay intact.",
+    trustScore: "65",
+    summary: "Based on your session with Glowie, you're exploring how AI can support meaningful learning agency. You're thinking carefully about both the opportunities and the human dimensions that need to stay intact, balancing institutional caution with pedagogical innovation.",
     strengths: [
         "Strong commitment to human-centric pedagogical values.",
-        "Awareness of the risks of cognitive offloading in student work."
+        "Awareness of the risks of cognitive offloading in student work.",
+        "Proactive approach to stakeholder communication."
     ],
     actions: [
         { timeline: "Immediate (Next 7 Days)", title: "Audit for Agency", description: "Identify one task this week where students could use AI as a 'Scaffolding Partner' rather than a 'Ghostwriter'." },
@@ -40,11 +44,16 @@ const DEFAULT_REPORT: ReportData = {
     stakeholders: [
         { role: "Students", strategy: "Communicate clearly about when AI tools are 'Agentic' vs. 'Automatic' to build their critical discernment." },
         { role: "Teachers", strategy: "Share your findings from the Audit for Agency to spark professional dialogue." },
-        { role: "Parents", strategy: "Demystify the school's AI approach by showing examples of human-AI collaboration." }
+        { role: "Leadership", strategy: "Demystify the school's AI approach by showing examples of human-AI collaboration." }
     ],
     bookReferences: [
         { concept: "Human-First Protocol", chapter: "Chapter 4", application: "Ensures you decide the 'non-negotiable' human skills before selecting AI tools." }
     ],
+    pilot2026: {
+        recommended: true,
+        why: "Your focus on balancing governance with classroom agency makes you an ideal candidate for early-stage framework testing.",
+        cta: "You are a prime candidate for our early 2026 True North Pilot. Register interest below."
+    },
     nextSteps: "Join the True North community at truenorthed.tech to continue your journey and connect with educators on the same path."
 };
 
@@ -232,17 +241,40 @@ export default function Report() {
                     </div>
                 </header>
 
-                {/* Summary */}
+                {/* Summary & Trust Score */}
                 <section className="mb-12">
-                    <h3 className={`text-xl font-bold mb-4 flex items-center gap-2 ${colors.primary}`}>
-                        <CheckCircle2 className="w-6 h-6" />
-                        Current State Assessment
-                    </h3>
-                    <p className="text-slate-700 text-lg leading-relaxed mb-6">{report?.summary}</p>
+                    <div className="flex flex-col md:flex-row gap-8 items-start">
+                        <div className="flex-1">
+                            <h3 className={`text-xl font-bold mb-4 flex items-center gap-2 ${colors.primary}`}>
+                                <CheckCircle2 className="w-6 h-6" />
+                                Current State Assessment
+                            </h3>
+                            <p className="text-slate-700 text-lg leading-relaxed mb-6">{report?.summary}</p>
+                        </div>
+
+                        {report?.trustScore && (
+                            <div className="w-full md:w-64 bg-slate-50 border border-slate-200 rounded-2xl p-6 shadow-inner">
+                                <div className="text-center mb-4">
+                                    <span className="text-xs font-bold uppercase tracking-widest text-slate-400">Agency vs Fear</span>
+                                    <div className="text-4xl font-serif font-black text-tn-primary mt-1">{report.trustScore}%</div>
+                                </div>
+                                <div className="h-3 w-full bg-slate-200 rounded-full overflow-hidden relative">
+                                    <div
+                                        className="h-full bg-gradient-to-r from-tn-primary to-tn-accent transition-all duration-1000"
+                                        style={{ width: `${report.trustScore}%` }}
+                                    />
+                                </div>
+                                <div className="flex justify-between mt-2 text-[10px] font-bold text-slate-400 uppercase">
+                                    <span>Control</span>
+                                    <span>Agency</span>
+                                </div>
+                            </div>
+                        )}
+                    </div>
 
                     {report?.strengths && report.strengths.length > 0 && (
-                        <div className={`rounded-xl p-6 border ${colors.bg}`}>
-                            <h4 className="font-semibold text-slate-900 mb-3">Key Strengths Identified:</h4>
+                        <div className={`rounded-xl p-6 border ${colors.bg} mt-6`}>
+                            <h4 className="font-semibold text-slate-900 mb-3">Core Opportunities:</h4>
                             <ul className="space-y-2">
                                 {report.strengths.map((s, i) => (
                                     <li key={i} className="flex items-start gap-2 text-slate-700">
@@ -333,18 +365,45 @@ export default function Report() {
                     </section>
                 )}
 
+                {/* Pilot 2026 CTA */}
+                {report?.pilot2026 && (
+                    <section className="mb-16 p-8 rounded-2xl bg-gradient-to-br from-tn-primary/10 via-white to-tn-accent/10 border-2 border-tn-primary/20 shadow-lg text-center relative overflow-hidden">
+                        <div className="absolute top-0 right-0 p-4 opacity-5">
+                            <Sparkles className="w-24 h-24" />
+                        </div>
+                        <h3 className="text-2xl font-bold text-slate-900 mb-2">The True North Pilot 2026</h3>
+                        <p className="text-slate-600 mb-6 max-w-2xl mx-auto">{report.pilot2026.why}</p>
+                        <div className="bg-white/60 backdrop-blur-sm p-4 rounded-xl border border-white/50 mb-6 inline-block">
+                            <span className="text-tn-primary font-bold">{report.pilot2026.cta}</span>
+                        </div>
+                        <div>
+                            <button
+                                onClick={() => alert('Interest registered! We will reach out soon.')}
+                                className="px-8 py-4 bg-tn-primary text-white font-bold rounded-xl shadow-xl hover:scale-105 transition-transform"
+                            >
+                                Register Your Interest
+                            </button>
+                        </div>
+                    </section>
+                )}
+
                 {/* Footer */}
                 <footer className="mt-16 pt-8 border-t border-slate-200 text-center">
-                    <p className="text-slate-500 font-medium mb-2">Ready for the next step?</p>
-                    <p className="text-slate-600 text-sm">{report?.nextSteps}</p>
+                    <p className="text-slate-500 font-medium mb-2 leading-relaxed">
+                        Ready to join the movement? Explore the concepts further in our book <br />
+                        <strong className="text-slate-900">Designing for AGENCY</strong> and join 1,000+ educators at
+                    </p>
                     <a
                         href="https://truenorthed.tech"
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-block mt-4 px-6 py-2.5 bg-tn-primary text-white font-semibold rounded-lg hover:bg-tn-primary/90 transition-colors text-sm"
+                        className="inline-block mt-4 px-8 py-3 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800 transition-all shadow-lg text-lg"
                     >
-                        Join TrueNorthEd.tech →
+                        truenorthed.tech
                     </a>
+                    <p className="mt-8 text-[10px] text-slate-400 uppercase tracking-widest font-bold">
+                        Phase 9 Assessment Engine · v3.0.0
+                    </p>
                 </footer>
             </motion.div>
         </div>

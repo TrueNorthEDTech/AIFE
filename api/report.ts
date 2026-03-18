@@ -45,36 +45,40 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             .map((m: { role: string; content: string }) => `${m.role === 'user' ? 'Participant' : 'Glowie'}: ${m.content}`)
             .join('\n\n');
 
-        const prompt = `You are a high-level strategic consultant analyzing a consultation between an educator and Glowie, the AI mascot from the book "Designing for AGENCY" by Norman, Garvin & Pelletier.
+        const prompt = `You are a world-class strategic consultant and AI implementation architect. Analyze the provided consultation session between a user and Glowie (the AI from "Designing for AGENCY").
 
-Your task is to generate a comprehensive, actionable JSON report based on the provided conversation.
+Your goal is to produce a deep, high-impact PDF-ready report in JSON format.
 
 CONVERSATION:
 ${conversationText}
 
-THE REPORT MUST BE VALID JSON AND ONLY JSON. NO MARKDOWN.
-
-STRUCTURE:
+JSON STRUCTURE REQUIREMENTS:
 {
   "role": "<user role>",
-  "framework": "<RISE, AGENCY, or PROMPT>",
+  "framework": "<RISE, AGENCY, or PROMPT focus>",
   "stage": "<Emerging, Developing, Advancing, or Leading>",
-  "summary": "<3-sentence professional summary mapping their current state to the book's core philosophy>",
-  "strengths": ["<strength 1>", "<strength 2>"],
+  "trustScore": "<A percentage 0-100 representing their 'Agency' vs 'Fear' leaning, where 100 is pure Agency>",
+  "summary": "<4-sentence deep synthesis mapping their institutional fears to agentic opportunities using the book's core philosophy>",
+  "strengths": ["<strength 1>", "<strength 2>", "<strength 3>"],
   "actions": [
     { "timeline": "Immediate (Next 7 Days)", "title": "<action>", "description": "<detailed description>" },
     { "timeline": "Short-term (30-Day Goal)", "title": "<action>", "description": "<detailed description>" },
-    { "timeline": "Strategic (90-Day Vision)", "1title": "<action>", "description": "<detailed description>" }
+    { "timeline": "Strategic (90-Day Vision)", "title": "<action>", "description": "<detailed description>" }
   ],
   "stakeholders": [
-    { "role": "Students", "strategy": "<how to involve/impact them>" },
-    { "role": "Teachers/Peers", "strategy": "<how to align with them>" },
-    { "role": "Leadership", "strategy": "<how to gain support>" }
+    { "role": "Students", "strategy": "<alignment strategy>" },
+    { "role": "Teachers", "strategy": "<alignment strategy>" },
+    { "role": "Leadership/Parents", "strategy": "<alignment strategy>" }
   ],
   "bookReferences": [
-    { "concept": "<e.g. Human-First Protocol>", "chapter": "Chapter <X>", "application": "<how this directly solves their reported problem>" }
+    { "concept": "<concept info>", "chapter": "Book Section", "application": "<how it applies to their friction points>" }
   ],
-  "nextSteps": "<Strong CTA for truenorthed.tech>"
+  "pilot2026": {
+    "recommended": true,
+    "why": "<1 sentence on why they are a good fit for the Pilot 2026 program based on their answers>",
+    "cta": "You are a prime candidate for our early 2026 True North Pilot. Register interest below."
+  },
+  "nextSteps": "Continue the conversation at truenorthed.tech and stay tuned for the Pilot 2026 launch."
 }`;
 
         const result = await model.generateContent(prompt);
