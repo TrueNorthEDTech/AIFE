@@ -3,6 +3,7 @@ import { Compass, MessageSquareText, FileText, Home } from 'lucide-react';
 import Overview from './pages/Overview';
 import ChatFlow from './pages/ChatFlow';
 import Report from './pages/Report';
+import { ChatErrorBoundary } from './components/ChatErrorBoundary';
 
 function App() {
   const location = useLocation();
@@ -51,7 +52,7 @@ function App() {
         <div className="absolute inset-0 bg-gradient-to-br from-gray-50 via-white to-gray-100/50 -z-10" />
         <Routes>
           <Route path="/" element={<Overview />} />
-          <Route path="/chat" element={<ChatFlow />} />
+          <Route path="/chat" element={<ChatErrorBoundary><ChatFlow /></ChatErrorBoundary>} />
           <Route path="/report" element={<Report />} />
         </Routes>
       </main>

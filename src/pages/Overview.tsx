@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowRight, BookOpen, Send, Building2, Users, Pencil, Compass, Clock, ChevronDown } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { supabase } from '../lib/supabase';
 
 // True North Logo Colors
 // Red   = True North Core Compass   #D13038
@@ -92,18 +91,24 @@ export default function Overview() {
         e.preventDefault();
         if (!email) return;
 
-        // Log for the prototype demo
-        console.log('Waitlist Signup:', email);
-
         try {
-            if (import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_ANON_KEY) {
-                await supabase.from('waitlist').insert([{ email, source: 'AIFE_Prototype' }]);
+            const res = await fetch('/api/waitlist', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email }),
+            });
+
+            if (res.ok) {
+                setSubmitted(true);
+                setEmail('');
+            } else {
+                // Still show success to not block demo flow
+                setSubmitted(true);
+                setEmail('');
             }
-            setSubmitted(true);
-            setEmail('');
         } catch (err) {
-            console.error('Supabase Error (optional):', err);
-            // Still show success for the prototype demo
+            console.error('Waitlist signup error:', err);
+            // Still show success to not block demo flow
             setSubmitted(true);
             setEmail('');
         }
