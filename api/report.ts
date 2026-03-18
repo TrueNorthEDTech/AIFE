@@ -45,27 +45,36 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             .map((m: { role: string; content: string }) => `${m.role === 'user' ? 'Participant' : 'Glowie'}: ${m.content}`)
             .join('\n\n');
 
-        const prompt = `You are analyzing a consultation conversation between an educator and Glowie, an AI from the book "Designing for AGENCY" by Norman, Garvin & Pelletier. 
+        const prompt = `You are a high-level strategic consultant analyzing a consultation between an educator and Glowie, the AI mascot from the book "Designing for AGENCY" by Norman, Garvin & Pelletier.
 
-Based on this conversation, generate a structured JSON report. The response must be ONLY valid JSON with no markdown or extra text.
+Your task is to generate a comprehensive, actionable JSON report based on the provided conversation.
 
-Conversation:
+CONVERSATION:
 ${conversationText}
 
-Return this JSON structure:
+THE REPORT MUST BE VALID JSON AND ONLY JSON. NO MARKDOWN.
+
+STRUCTURE:
 {
-  "role": "<their role, e.g. 'Technology Director'>",
-  "framework": "<primary framework focus: 'RISE', 'AGENCY', or 'PROMPT'>",
-  "stage": "<where they are on the agency spectrum: 'Emerging', 'Developing', 'Advancing', or 'Leading'>",
-  "summary": "<2-3 sentence personalized summary of their situation based on the conversation>",
+  "role": "<user role>",
+  "framework": "<RISE, AGENCY, or PROMPT>",
+  "stage": "<Emerging, Developing, Advancing, or Leading>",
+  "summary": "<3-sentence professional summary mapping their current state to the book's core philosophy>",
   "strengths": ["<strength 1>", "<strength 2>"],
   "actions": [
-    { "step": 1, "title": "<short action title>", "description": "<1 sentence description tailored to their specific context>" },
-    { "step": 2, "title": "<short action title>", "description": "<1 sentence description>" },
-    { "step": 3, "title": "<short action title>", "description": "<1 sentence description>" },
-    { "step": 4, "title": "<short action title>", "description": "<1 sentence description>" }
+    { "timeline": "Immediate (Next 7 Days)", "title": "<action>", "description": "<detailed description>" },
+    { "timeline": "Short-term (30-Day Goal)", "title": "<action>", "description": "<detailed description>" },
+    { "timeline": "Strategic (90-Day Vision)", "1title": "<action>", "description": "<detailed description>" }
   ],
-  "nextSteps": "<1 sentence call to action about joining truenorthed.tech>"
+  "stakeholders": [
+    { "role": "Students", "strategy": "<how to involve/impact them>" },
+    { "role": "Teachers/Peers", "strategy": "<how to align with them>" },
+    { "role": "Leadership", "strategy": "<how to gain support>" }
+  ],
+  "bookReferences": [
+    { "concept": "<e.g. Human-First Protocol>", "chapter": "Chapter <X>", "application": "<how this directly solves their reported problem>" }
+  ],
+  "nextSteps": "<Strong CTA for truenorthed.tech>"
 }`;
 
         const result = await model.generateContent(prompt);

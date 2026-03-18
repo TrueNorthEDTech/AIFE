@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Download, Share2, CheckCircle2, ChevronRight, Loader2, Sparkles, RefreshCw } from 'lucide-react';
+import { Download, Share2, CheckCircle2, ChevronRight, Loader2, Sparkles, RefreshCw, Clock, Users, BookOpen } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 // @ts-ignore
@@ -11,7 +11,9 @@ type ReportData = {
     stage: string;
     summary: string;
     strengths: string[];
-    actions: { step: number; title: string; description: string }[];
+    actions: { timeline: string; title: string; description: string }[];
+    stakeholders: { role: string; strategy: string }[];
+    bookReferences: { concept: string; chapter: string; application: string }[];
     nextSteps: string;
 };
 
@@ -27,16 +29,23 @@ const DEFAULT_REPORT: ReportData = {
     stage: "Developing",
     summary: "Based on your session with Glowie, you're exploring how AI can support meaningful learning agency. You're thinking carefully about both the opportunities and the human dimensions that need to stay intact.",
     strengths: [
-        "You recognize the importance of keeping humans at the center of AI decisions.",
-        "You are thoughtfully approaching adoption rather than reacting to AI trends.",
+        "Strong commitment to human-centric pedagogical values.",
+        "Awareness of the risks of cognitive offloading in student work."
     ],
     actions: [
-        { step: 1, title: "Clarify Your True North", description: "Hold a team session to define your institution's non-negotiable values around technology and human agency." },
-        { step: 2, title: "Map One Opportunity", description: "Identify one process where AI can save time, and explicitly plan how to reinvest that time into human connection." },
-        { step: 3, title: "Pilot With PROMPT", description: "Design one classroom activity that increases student choice and creative agency using AI scaffolding." },
-        { step: 4, title: "Reflect & Iterate", description: "After 4 weeks, assess whether your pilot increased or decreased learner agency and adjust accordingly." },
+        { timeline: "Immediate (Next 7 Days)", title: "Audit for Agency", description: "Identify one task this week where students could use AI as a 'Scaffolding Partner' rather than a 'Ghostwriter'." },
+        { timeline: "Short-term (30-Day Goal)", title: "Stakeholder Alignment", description: "Host a small pilot group to test the AGENCY flywheel in your specific grade level/subject." },
+        { timeline: "Strategic (90-Day Vision)", title: "Systemic Integration", description: "Embed the Human-First Protocol into your standard unit planning template." }
     ],
-    nextSteps: "Join the True North community at truenorthed.tech to continue your journey and connect with educators on the same path.",
+    stakeholders: [
+        { role: "Students", strategy: "Communicate clearly about when AI tools are 'Agentic' vs. 'Automatic' to build their critical discernment." },
+        { role: "Teachers", strategy: "Share your findings from the Audit for Agency to spark professional dialogue." },
+        { role: "Parents", strategy: "Demystify the school's AI approach by showing examples of human-AI collaboration." }
+    ],
+    bookReferences: [
+        { concept: "Human-First Protocol", chapter: "Chapter 4", application: "Ensures you decide the 'non-negotiable' human skills before selecting AI tools." }
+    ],
+    nextSteps: "Join the True North community at truenorthed.tech to continue your journey and connect with educators on the same path."
 };
 
 export default function Report() {
@@ -246,23 +255,80 @@ export default function Report() {
                     )}
                 </section>
 
-                {/* Action Plan */}
+                {/* Action Plan - Strategic Timeline */}
                 {report?.actions && report.actions.length > 0 && (
                     <section className="mb-12">
-                        <h3 className="text-xl font-bold text-tn-secondary mb-4 flex items-center gap-2">
-                            <CheckCircle2 className="w-6 h-6" />
-                            Your {report?.framework || 'Action'} Plan
+                        <h3 className="text-xl font-bold text-tn-secondary mb-6 flex items-center gap-2">
+                            <Clock className="w-6 h-6" />
+                            Strategic Transformation Timeline
                         </h3>
-                        <div className="grid sm:grid-cols-2 gap-6">
+                        <div className="space-y-4">
                             {report.actions.map((action, i) => (
-                                <div key={i} className={`bg-white border rounded-xl p-5 shadow-sm ${report && i === report.actions.length - 1 ? 'border-tn-secondary/30 ring-1 ring-tn-secondary/10' : ''}`}>
-                                    <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold mb-4 ${report && i === report.actions.length - 1 ? 'bg-tn-secondary text-white' : 'bg-tn-secondary/10 text-tn-secondary'}`}>
-                                        {action.step}
+                                <div key={i} className="flex gap-4 md:gap-6 group">
+                                    <div className="flex flex-col items-center">
+                                        <div className={`w-4 h-4 rounded-full border-2 ${i === 0 ? 'bg-tn-primary border-tn-primary' : 'bg-white border-slate-300'} z-10`} />
+                                        {i !== report.actions.length - 1 && <div className="w-0.5 h-full bg-slate-200 -mt-1" />}
                                     </div>
-                                    <h4 className="font-bold text-slate-900 mb-2">{action.title}</h4>
-                                    <p className="text-slate-600 text-sm">{action.description}</p>
+                                    <div className={`flex-1 pb-8`}>
+                                        <span className="text-xs font-bold uppercase tracking-widest text-tn-primary mb-1 block">
+                                            {action.timeline}
+                                        </span>
+                                        <h4 className="font-bold text-slate-900 text-lg mb-2">{action.title}</h4>
+                                        <div className="bg-slate-50 border border-slate-100 rounded-xl p-4 text-slate-600 text-[15px] leading-relaxed">
+                                            {action.description}
+                                        </div>
+                                    </div>
                                 </div>
                             ))}
+                        </div>
+                    </section>
+                )}
+
+                {/* Stakeholder Strategy */}
+                {report?.stakeholders && report.stakeholders.length > 0 && (
+                    <section className="mb-12">
+                        <h3 className="text-xl font-bold text-tn-accent mb-6 flex items-center gap-2">
+                            <Users className="w-6 h-6" />
+                            Stakeholder Alignment Strategy
+                        </h3>
+                        <div className="grid md:grid-cols-3 gap-4">
+                            {report.stakeholders.map((sh, i) => (
+                                <div key={i} className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+                                    <h4 className="font-bold text-slate-900 mb-2 text-sm uppercase tracking-wide border-b pb-2 border-slate-100 flex items-center gap-2">
+                                        <div className="w-1.5 h-4 bg-tn-accent rounded-full" />
+                                        {sh.role}
+                                    </h4>
+                                    <p className="text-slate-600 text-sm leading-relaxed">{sh.strategy}</p>
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+                )}
+
+                {/* Book Reference Section */}
+                {report?.bookReferences && report.bookReferences.length > 0 && (
+                    <section className="mb-12 p-8 rounded-2xl bg-slate-900 text-white relative overflow-hidden group">
+                        <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:opacity-20 transition-opacity">
+                            <BookOpen className="w-32 h-32 rotate-12" />
+                        </div>
+                        <div className="relative z-10">
+                            <h3 className="text-xl font-bold mb-6 flex items-center gap-2 text-tn-accent">
+                                <BookOpen className="w-6 h-6" />
+                                Deep Dive: *Designing for AGENCY*
+                            </h3>
+                            <div className="space-y-6">
+                                {report.bookReferences.map((ref, i) => (
+                                    <div key={i} className="border-l-2 border-tn-accent/30 pl-6">
+                                        <div className="flex items-center gap-3 mb-2">
+                                            <span className="text-tn-accent font-bold text-sm tracking-widest uppercase">{ref.concept}</span>
+                                            <span className="text-slate-400 text-xs">— {ref.chapter}</span>
+                                        </div>
+                                        <p className="text-slate-300 leading-relaxed italic">
+                                            &quot;{ref.application}&quot;
+                                        </p>
+                                    </div>
+                                ))}
+                            </div>
                         </div>
                     </section>
                 )}
