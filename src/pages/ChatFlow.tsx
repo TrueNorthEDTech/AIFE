@@ -214,36 +214,63 @@ export default function ChatFlow() {
                     if (done) break;
 
                     const chunk = decoder.decode(value, { stream: true });
-                    // Parse Vercel AI SDK data stream format: lines starting with '0:'
-                    const lines = chunk.split('\n');
-                    for (const line of lines) {
-                        const trimmedLine = line.trim();
-                        if (trimmedLine.startsWith('0:')) {
-                            try {
-                                const jsonStr = trimmedLine.substring(2);
-                                // The AI SDK sometimes sends multiple JSON chunks in one line or fragments
-                                // Basic but more robust JSON stripping
-                                const parsed = JSON.parse(jsonStr);
-                                assistantContent += parsed;
-                                setMessages(prev =>
-                                    prev.map(m => m.id === assistantMsgId
-                                        ? { ...m, content: assistantContent }
-                                        : m
-                                    )
-                                );
-                            } catch (e) {
-                                // If it's a fragment or malformed, we wait for next chunk
-                                console.warn('Stream parse error (fragment?):', e, trimmedLine);
+
+                    // NEW: More robust regex-based parsing for Vercel AI SDK Data Stream
+                    // Matches patterns like 0:"..." regardless of newlines
+                    const matches = chunk.matchAll(/0:"((?:[^"\\]|\\.)*)"/g);
+
+                    let foundMatches = false;
+                    for (const match of matches) {
+                        foundMatches = true;
+                        try {
+                            // The match[1] is already the escaped string content
+                            // We wrap it in quotes and parse it to handle escapes properly
+                            const content = JSON.parse(`"${match[1]}"`);
+                            assistantContent += content;
+
+                            setMessages(prev =>
+                                prev.map(m => m.id === assistantMsgId
+                                    ? { ...m, content: assistantContent }
+                                    : m
+                                )
+                            );
+                        } catch (e) {
+                            console.warn('Regex match parse error:', e);
+                        }
+                    }
+
+                    // Fallback for non-standard chunks (older format or line-based)
+                    if (!foundMatches) {
+                        const lines = chunk.split('\n');
+                        for (const line of lines) {
+                            const trimmedLine = line.trim();
+                            if (trimmedLine.startsWith('0:')) {
+                                try {
+                                    const jsonStr = trimmedLine.substring(2);
+                                    const parsed = JSON.parse(jsonStr);
+                                    assistantContent += parsed;
+                                    setMessages(prev =>
+                                        prev.map(m => m.id === assistantMsgId
+                                            ? { ...m, content: assistantContent }
+                                            : m
+                                        )
+                                    );
+                                } catch (e) { }
                             }
                         }
                     }
                 }
             }
+
+            // Safety check: if the stream finished but content is empty
+            if (!assistantContent) {
+                throw new Error("Glowie is silent. This usually means the API key is missing or invalid on the server.");
+            }
         } catch (err) {
             console.error('Chat API error:', err);
-            setError('Could not connect to Glowie. Switching to offline demo mode.');
+            setError(err instanceof Error ? err.message : 'Could not connect to Glowie. Switching to offline demo mode.');
             setOfflineMode(true);
-            // Still send a scripted response in offline mode
+            // ... scripted fallback logic ...
             const idx = offlineIndexRef.current;
             const content = OFFLINE_RESPONSES[Math.min(idx, OFFLINE_RESPONSES.length - 1)];
             offlineIndexRef.current = idx + 1;
