@@ -88,6 +88,12 @@ const AVAILABLE_VOICES = [
     { id: 'Aoede', name: 'Aoede', desc: 'Bright & Friendly', icon: '🎶' }
 ];
 
+const WELCOME_MESSAGE = {
+    id: 'welcome',
+    role: 'assistant' as const,
+    content: "Hi! I'm **Glowie** ✨ — your True North AI guide from the book *Designing for AGENCY*. I'm here to help you map out your personal AI journey in education.\n\nTo get started, **what is your current role?** (e.g. Teacher, Tech Director, Administrator, Curriculum Coordinator)"
+};
+
 export default function ChatFlow() {
     const navigate = useNavigate();
     const [isRecording, setIsRecording] = useState(false);
@@ -99,17 +105,15 @@ export default function ChatFlow() {
     // Vercel AI SDK Hook
     const { messages, input = '', handleInputChange, handleSubmit, setMessages, isLoading, error, append } = useChat({
         api: '/api/chat',
-        initialMessages: [
-            {
-                id: 'welcome',
-                role: 'assistant',
-                content: "Hello! I'm Glowie, your True North consultant. To get started, what is your current role at your school?"
-            }
-        ],
         onError: () => {
             setOfflineMode(true);
         }
     });
+
+    // Set the welcome message once on mount (initialMessages changed format in @ai-sdk/react v3)
+    useEffect(() => {
+        setMessages([WELCOME_MESSAGE]);
+    }, []);
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
