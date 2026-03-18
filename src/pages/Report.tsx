@@ -51,7 +51,8 @@ export default function Report() {
 
     const generateReport = async () => {
         setIsGenerating(true);
-        const rawConversation = sessionStorage.getItem('glowieConversation');
+        // Prioritize localStorage for cross-tab persistence, fallback to sessionStorage
+        const rawConversation = localStorage.getItem('glowieConversation') || sessionStorage.getItem('glowieConversation');
 
         if (!rawConversation) {
             // No conversation — show the default report
@@ -191,8 +192,8 @@ export default function Report() {
                 {/* Header */}
                 <header className="flex flex-col sm:flex-row justify-between items-start sm:items-end border-b border-slate-200 pb-8 mb-8 gap-4 pt-4">
                     <div className="flex items-start gap-6">
-                        <div className="w-16 h-16 md:w-20 md:h-20 shrink-0">
-                            <img src="/logo.png" alt="True North Logo" className="w-full h-full object-contain drop-shadow-md mix-blend-multiply" />
+                        <div className="w-16 h-16 md:w-20 md:h-20 shrink-0 rounded-full overflow-hidden border-2 border-slate-100 bg-white shadow-sm flex items-center justify-center">
+                            <img src="/logo.png" alt="True North Logo" className="w-full h-full object-cover mix-blend-multiply" />
                         </div>
                         <div>
                             <h2 className="text-3xl font-serif font-bold text-slate-900 mb-2">AIFE Session Insights</h2>

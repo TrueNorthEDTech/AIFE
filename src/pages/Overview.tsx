@@ -134,11 +134,11 @@ export default function Overview() {
                         {/* Soft Brand Glow behind logo */}
                         <div className="absolute inset-0 bg-gradient-to-tr from-tn-primary/20 via-tn-secondary/10 to-tn-accent/20 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-700 animate-pulse"></div>
 
-                        <div className="relative w-32 h-32 md:w-40 md:h-40 flex items-center justify-center">
+                        <div className="relative w-32 h-32 md:w-40 md:h-40 flex items-center justify-center bg-white rounded-full overflow-hidden border-4 border-white shadow-xl">
                             <motion.img
                                 src="/logo.png"
                                 alt="True North Logo"
-                                className="w-full h-full object-contain drop-shadow-2xl z-10 mix-blend-multiply"
+                                className="w-full h-full object-cover z-10 mix-blend-multiply"
                                 initial={{ rotate: -10, opacity: 0, scale: 0.8 }}
                                 animate={{ rotate: 0, opacity: 1, scale: 1 }}
                                 transition={{
@@ -148,10 +148,6 @@ export default function Overview() {
                                     delay: 0.2
                                 }}
                             />
-
-                            {/* Interactive Ring Elements (Subtle CSS animations) */}
-                            <div className="absolute inset-0 border-2 border-tn-primary/10 rounded-full animate-[spin_20s_linear_infinite] pointer-events-none"></div>
-                            <div className="absolute inset-4 border border-tn-secondary/5 rounded-full animate-[spin_15s_linear_infinite_reverse] pointer-events-none"></div>
                         </div>
                     </motion.div>
                 </div>

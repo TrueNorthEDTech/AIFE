@@ -3,6 +3,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Send, Mic, Square, Sparkles, AlertCircle, WifiOff, RefreshCcw, Paperclip, ChevronDown, Headphones } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { supabase } from '../lib/supabase';
 
 // --- Glowie Icon ---
 export const GlowieIcon = ({ className }: { className?: string }) => (
@@ -11,7 +12,7 @@ export const GlowieIcon = ({ className }: { className?: string }) => (
         <img
             src="/glowie_mood_happy.png"
             alt="Glowie Character"
-            className="relative z-10 w-full h-full object-contain drop-shadow-lg transition-transform duration-300 group-hover/glowie-icon:scale-105"
+            className="relative z-10 w-full h-full object-cover drop-shadow-lg transition-transform duration-300 group-hover/glowie-icon:scale-105 rounded-full"
             style={{ filter: 'drop-shadow(0 4px 6px rgba(0,0,0,0.1))' }}
         />
     </div>
@@ -104,12 +105,60 @@ export default function ChatFlow() {
     const isReportReady = messages.some(m => m.content.includes('REPORT_READY'));
     const cleanContent = (content: string) => content.replace('REPORT_READY', '').trim();
 
-    // Save conversation to sessionStorage for Report page
+    // Hydrate from localStorage on mount
+    useEffect(() => {
+        const saved = localStorage.getItem('glowieConversation');
+        if (saved) {
+            try {
+                const parsed = JSON.parse(saved);
+                if (Array.isArray(parsed) && parsed.length > 0) {
+                    setMessages(parsed);
+                }
+            } catch (e) {
+                console.error('Failed to load chat history:', e);
+            }
+        }
+    }, []);
+
+    // Save conversation to localStorage
     useEffect(() => {
         if (messages.length > 0) {
+            localStorage.setItem('glowieConversation', JSON.stringify(messages));
+            // Also keep sessionStorage for backward compatibility with Report page if needed
             sessionStorage.setItem('glowieConversation', JSON.stringify(messages));
         }
     }, [messages]);
+
+    // Analytics: Save session summary to Supabase when report is ready
+    const hasSavedAnalytics = useRef(false);
+    useEffect(() => {
+        if (isReportReady && !hasSavedAnalytics.current && !offlineMode) {
+            saveAnalytics();
+        }
+    }, [isReportReady]);
+
+    const saveAnalytics = async () => {
+        hasSavedAnalytics.current = true;
+        try {
+            const userRole = messages.find(m => m.role === 'user')?.content || 'Unknown';
+            const framework = messages.some(m => m.content.includes('RISE')) ? 'RISE' :
+                messages.some(m => m.content.includes('AGENCY')) ? 'AGENCY' :
+                    messages.some(m => m.content.includes('PROMPT')) ? 'PROMPT' : 'General';
+
+            await supabase.from('glowie_analytics').insert({
+                role: userRole,
+                framework_focus: framework,
+                message_count: messages.length,
+                session_id: Date.now().toString(),
+                completed_at: new Date().toISOString(),
+                // Basic takeaway capture: total tokens approximation or just the last user message
+                last_user_input: messages.filter(m => m.role === 'user').pop()?.content || ''
+            });
+            console.log('Analytics saved successfully.');
+        } catch (err) {
+            console.error('Failed to save analytics:', err);
+        }
+    };
 
     // --- Main send handler using fetch ---
     const sendMessage = async (userText: string) => {
@@ -168,9 +217,12 @@ export default function ChatFlow() {
                     // Parse Vercel AI SDK data stream format: lines starting with '0:'
                     const lines = chunk.split('\n');
                     for (const line of lines) {
-                        if (line.startsWith('0:')) {
+                        const trimmedLine = line.trim();
+                        if (trimmedLine.startsWith('0:')) {
                             try {
-                                const jsonStr = line.substring(2);
+                                const jsonStr = trimmedLine.substring(2);
+                                // The AI SDK sometimes sends multiple JSON chunks in one line or fragments
+                                // Basic but more robust JSON stripping
                                 const parsed = JSON.parse(jsonStr);
                                 assistantContent += parsed;
                                 setMessages(prev =>
@@ -179,8 +231,9 @@ export default function ChatFlow() {
                                         : m
                                     )
                                 );
-                            } catch {
-                                // Sometimes chunks aren't complete JSON, ignore
+                            } catch (e) {
+                                // If it's a fragment or malformed, we wait for next chunk
+                                console.warn('Stream parse error (fragment?):', e, trimmedLine);
                             }
                         }
                     }
@@ -249,14 +302,16 @@ export default function ChatFlow() {
             {/* Header */}
             <div className="px-6 py-4 bg-white/80 border-b border-slate-200 flex items-center justify-between flex-shrink-0">
                 <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-full bg-tn-primary/10 flex items-center justify-center overflow-hidden border border-tn-primary/20 p-1">
-                        <GlowieIcon className="w-full h-full" />
+                    <div className="w-12 h-12 rounded-full bg-tn-primary/10 flex items-center justify-center overflow-hidden border border-tn-primary/20 aspect-square">
+                        <GlowieIcon className="w-full h-full aspect-square" />
                     </div>
                     <div>
                         <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
                             Glowie
                             <div className="flex items-center gap-1.5 bg-tn-primary/10 text-tn-primary text-[10px] px-2 py-0.5 rounded-full uppercase tracking-wider font-bold border border-tn-primary/20">
-                                <img src="/logo.png" alt="" className="w-3 h-3 object-contain mix-blend-multiply" />
+                                <div className="w-4 h-4 rounded-full overflow-hidden flex-shrink-0 bg-white">
+                                    <img src="/logo.png" alt="" className="w-full h-full object-cover mix-blend-multiply" />
+                                </div>
                                 AIFE AI Base
                             </div>
                         </h2>
