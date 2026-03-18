@@ -110,10 +110,6 @@ export default function ChatFlow() {
         }
     });
 
-    // Set the welcome message once on mount (initialMessages changed format in @ai-sdk/react v3)
-    useEffect(() => {
-        setMessages([WELCOME_MESSAGE]);
-    }, []);
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -288,6 +284,17 @@ export default function ChatFlow() {
 
             {/* Messages Area */}
             <div className="flex-1 overflow-y-auto p-6 space-y-6">
+                {/* Static welcome message — rendered independently from useChat state */}
+                <div className="flex justify-start">
+                    <div className="w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center mr-3 mt-1 flex-shrink-0 shadow-sm">
+                        <GlowieIcon className="w-6 h-6" />
+                    </div>
+                    <div className="max-w-[80%] rounded-2xl px-5 py-3.5 shadow-sm bg-white text-slate-800 border border-slate-200 rounded-tl-sm">
+                        <div className="leading-relaxed text-[15px]">
+                            {formatMessageText(WELCOME_MESSAGE.content)}
+                        </div>
+                    </div>
+                </div>
                 <AnimatePresence initial={false}>
                     {messages.map((msg) => {
                         msgRole = msg.role; // Set the hack before formatMessageText is called
