@@ -192,7 +192,7 @@ export default function Report() {
                 <header className="flex flex-col sm:flex-row justify-between items-start sm:items-end border-b border-slate-200 pb-8 mb-8 gap-4 pt-4">
                     <div className="flex items-start gap-6">
                         <div className="w-16 h-16 md:w-20 md:h-20 shrink-0">
-                            <img src="/logo.png" alt="True North Logo" className="w-full h-full object-contain drop-shadow-md" />
+                            <img src="/logo.png" alt="True North Logo" className="w-full h-full object-contain drop-shadow-md mix-blend-multiply" />
                         </div>
                         <div>
                             <h2 className="text-3xl font-serif font-bold text-slate-900 mb-2">AIFE Session Insights</h2>

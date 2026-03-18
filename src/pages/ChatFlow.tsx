@@ -256,7 +256,7 @@ export default function ChatFlow() {
                         <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
                             Glowie
                             <div className="flex items-center gap-1.5 bg-tn-primary/10 text-tn-primary text-[10px] px-2 py-0.5 rounded-full uppercase tracking-wider font-bold border border-tn-primary/20">
-                                <img src="/logo.png" alt="" className="w-3 h-3 object-contain" />
+                                <img src="/logo.png" alt="" className="w-3 h-3 object-contain mix-blend-multiply" />
                                 AIFE AI Base
                             </div>
                         </h2>

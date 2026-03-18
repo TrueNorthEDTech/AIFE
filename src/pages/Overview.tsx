@@ -138,7 +138,7 @@ export default function Overview() {
                             <motion.img
                                 src="/logo.png"
                                 alt="True North Logo"
-                                className="w-full h-full object-contain drop-shadow-2xl z-10"
+                                className="w-full h-full object-contain drop-shadow-2xl z-10 mix-blend-multiply"
                                 initial={{ rotate: -10, opacity: 0, scale: 0.8 }}
                                 animate={{ rotate: 0, opacity: 1, scale: 1 }}
                                 transition={{
