@@ -48,9 +48,10 @@ ${SLIDES_KNOWLEDGE}
 export default async function reqHandler(req: Request) {
     try {
         const { messages } = await req.json();
+        const GOOGLE_KEY = process.env.GOOGLE_GENERATIVE_AI_KEY;
 
         const result = streamText({
-            model: google('gemini-2.0-flash'),
+            model: google('gemini-2.0-flash', { apiKey: GOOGLE_KEY }),
             system: SYSTEM_PROMPT,
             messages,
         });

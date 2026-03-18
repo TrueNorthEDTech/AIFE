@@ -3,15 +3,11 @@ import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Send, Mic, Square, Sparkles, AlertCircle, WifiOff, RefreshCcw, Paperclip, ChevronDown, Headphones } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useChat } from '@ai-sdk/react';
 
-// --- Glowie Icon (From True North Icons.tsx) ---
+// --- Glowie Icon ---
 export const GlowieIcon = ({ className }: { className?: string }) => (
     <div className={`${className || "w-6 h-6"} relative group/glowie-icon flex items-center justify-center`}>
-        {/* Soft Outer Glow - Magical Aura */}
         <div className="absolute inset-0 bg-yellow-300 rounded-full blur-xl opacity-0 group-hover/glowie-icon:opacity-40 transition-opacity duration-700 animate-pulse"></div>
-
-        {/* The EXACT Image provided by User */}
         <img
             src="/glowie_mood_happy.png"
             alt="Glowie Character"
@@ -21,52 +17,8 @@ export const GlowieIcon = ({ className }: { className?: string }) => (
     </div>
 );
 
-// --- Markdown Formatter (From True North GlowieBot.tsx) ---
-const formatMessageText = (text: string) => {
-    const lines = text.split('\n');
-    return lines.map((line, i) => {
-        const citationRegex = /\[\[Source:\s*(.*?)\|(.*?)\]\]/g;
-        let citations: { title: string, url: string }[] = [];
-
-        let cleanLine = line.replace(citationRegex, (match, title, url) => {
-            citations.push({ title, url });
-            return '';
-        });
-
-        const renderContent = () => {
-            if (cleanLine.trim().startsWith('- ') || cleanLine.trim().startsWith('* ')) {
-                const content = cleanLine.trim().substring(2);
-                return (
-                    <div className="flex items-start ml-2 mb-1">
-                        <span className="mr-2 text-teal-600">•</span>
-                        <span>{parseBold(content)}</span>
-                    </div>
-                );
-            }
-            if (cleanLine.trim().startsWith('### ')) {
-                return <h4 className="font-bold text-base mt-2 mb-1 text-slate-800">{parseBold(cleanLine.trim().substring(4))}</h4>
-            }
-            return <div className="min-h-[2px]">{parseBold(cleanLine)}</div>
-        };
-
-        return (
-            <div key={i} className={msgRole === 'user' ? "text-white" : "text-slate-800"}>
-                {renderContent()}
-                {citations.length > 0 && (
-                    <div className="flex flex-wrap gap-2 mt-1 ml-2">
-                        {citations.map((cit, idx) => (
-                            <a key={idx} href={cit.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-blue-50 text-blue-600 border border-blue-100 hover:bg-blue-100 no-underline">
-                                🔗 {cit.title}
-                            </a>
-                        ))}
-                    </div>
-                )}
-            </div>
-        );
-    });
-};
-
-const parseBold = (text: string) => {
+// --- Markdown Formatter ---
+const parseBold = (text: string): React.ReactNode[] => {
     const parts = text.split(/(\*\*.*?\*\*)/g);
     return parts.map((part, index) => {
         if (part.startsWith('**') && part.endsWith('**')) {
@@ -76,40 +28,70 @@ const parseBold = (text: string) => {
     });
 };
 
-let msgRole = "user"; // Terrible hack for formatMessageText coloring, but effective in prototypes 
+const parseItalic = (text: string): React.ReactNode[] => {
+    const parts = text.split(/(\*[^*]+?\*)/g);
+    return parts.map((part, index) => {
+        if (part.startsWith('*') && part.endsWith('*') && !part.startsWith('**')) {
+            return <em key={index} className="italic text-inherit">{part.slice(1, -1)}</em>;
+        }
+        return part;
+    });
+};
 
-// AVAILABLE GEMINI VOICES (From True North)
+const formatMessageText = (text: string, isUser = false) => {
+    const colorClass = isUser ? 'text-white' : 'text-slate-800';
+    const lines = text.split('\n');
+    return lines.map((line, i) => {
+        const trimmed = line.trim();
+        if (trimmed.startsWith('- ') || trimmed.startsWith('* ')) {
+            return (
+                <div key={i} className={`flex items-start ml-2 mb-1 ${colorClass}`}>
+                    <span className="mr-2 text-teal-500 font-bold">•</span>
+                    <span>{parseBold(trimmed.substring(2))}</span>
+                </div>
+            );
+        }
+        if (trimmed.startsWith('### ')) {
+            return <h4 key={i} className={`font-bold text-base mt-2 mb-1 ${colorClass}`}>{parseBold(trimmed.substring(4))}</h4>;
+        }
+        return <div key={i} className={`min-h-[2px] ${colorClass}`}>{parseBold(trimmed)}</div>;
+    });
+};
+
+// --- Voice options ---
 const AVAILABLE_VOICES = [
     { id: 'Zephyr', name: 'Zephyr', desc: 'Standard & Balanced', icon: '🤖' },
     { id: 'Puck', name: 'Puck', desc: 'Playful & Energetic', icon: '🧚' },
     { id: 'Charon', name: 'Charon', desc: 'Deep & Calm', icon: '🌑' },
     { id: 'Kore', name: 'Kore', desc: 'Soft & Gentle', icon: '🌸' },
-    { id: 'Fenrir', name: 'Fenrir', desc: 'Authoritative', icon: '🐺' },
-    { id: 'Aoede', name: 'Aoede', desc: 'Bright & Friendly', icon: '🎶' }
+    { id: 'Aoede', name: 'Aoede', desc: 'Bright & Friendly', icon: '🎶' },
 ];
 
-const WELCOME_MESSAGE = {
-    id: 'welcome',
-    role: 'assistant' as const,
-    content: "Hi! I'm **Glowie** ✨ — your True North AI guide from the book *Designing for AGENCY*. I'm here to help you map out your personal AI journey in education.\n\nTo get started, **what is your current role?** (e.g. Teacher, Tech Director, Administrator, Curriculum Coordinator)"
-};
+// --- Welcome Message ---
+const WELCOME_CONTENT = "Hi! I'm **Glowie** ✨ — your True North AI guide from the book *Designing for AGENCY*. I'm here to help you map out your personal AI journey in education.\n\nTo get started, **what is your current role?** (e.g. Teacher, Tech Director, Administrator, Curriculum Coordinator)";
+
+type Message = { id: string; role: 'user' | 'assistant'; content: string };
+
+// --- Offline scripted responses ---
+const OFFLINE_RESPONSES = [
+    "That's a great role to be in! To help focus our conversation today, which pathway resonates most with you right now?\n\n- **RISE** — Institutional/leadership-level change\n- **AGENCY** — Curriculum design and pedagogy\n- **PROMPT** — Classroom AI interactions with students",
+    "Excellent choice. Let me ask you something core to that path: **What does your current AI policy or approach look like?** Is it more restrictive, exploratory, or somewhere in between?",
+    "That's a really honest reflection. Here's something from the book to consider: the *Human-First Protocol* asks us — what decisions should always remain with a human, even as AI becomes more capable?\n\n**What comes to mind for you in your context?**",
+    "I've gathered enough insight to map your True North. Your answers show a clear trajectory. Let me generate your personalized action report now. REPORT_READY",
+];
 
 export default function ChatFlow() {
     const navigate = useNavigate();
-    const [isRecording, setIsRecording] = useState(false);
+    const [messages, setMessages] = useState<Message[]>([]);
+    const [input, setInput] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
     const [offlineMode, setOfflineMode] = useState(false);
+    const [error, setError] = useState<string | null>(null);
     const [selectedVoice, setSelectedVoice] = useState('Zephyr');
     const [showVoiceMenu, setShowVoiceMenu] = useState(false);
+    const [isRecording, setIsRecording] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
-
-    // Vercel AI SDK Hook
-    const { messages, input = '', handleInputChange, handleSubmit, setMessages, isLoading, error, append } = useChat({
-        api: '/api/chat',
-        onError: () => {
-            setOfflineMode(true);
-        }
-    });
-
+    const offlineIndexRef = useRef(0);
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -117,50 +99,125 @@ export default function ChatFlow() {
 
     useEffect(() => {
         scrollToBottom();
-    }, [messages, isLoading, offlineMode]);
+    }, [messages, isLoading]);
 
-    // Offline/Mock Logic Fallback for Presentations
-    const handleOfflineSend = () => {
-        if (!input.trim()) return;
+    const isReportReady = messages.some(m => m.content.includes('REPORT_READY'));
+    const cleanContent = (content: string) => content.replace('REPORT_READY', '').trim();
 
-        const newMessages = [...messages, { id: Date.now().toString(), role: 'user' as const, content: input }];
-        setMessages(newMessages);
+    // Save conversation to sessionStorage for Report page
+    useEffect(() => {
+        if (messages.length > 0) {
+            sessionStorage.setItem('glowieConversation', JSON.stringify(messages));
+        }
+    }, [messages]);
 
-        handleInputChange({ target: { value: '' } } as any);
+    // --- Main send handler using fetch ---
+    const sendMessage = async (userText: string) => {
+        if (!userText.trim() || isLoading) return;
 
-        setTimeout(() => {
-            let aiContent = "That's insightful. Which path are you focusing on today: Institutional change (RISE), Curriculum (AGENCY), or Classroom (PROMPT)?";
-            if (newMessages.length > 3) {
-                aiContent = "I've gathered enough insights! Let's generate your personalized action report. REPORT_READY";
+        const userMsg: Message = { id: Date.now().toString(), role: 'user', content: userText };
+        const updatedMessages = [...messages, userMsg];
+        setMessages(updatedMessages);
+        setInput('');
+        setIsLoading(true);
+        setError(null);
+
+        if (offlineMode) {
+            // Offline scripted fallback
+            setTimeout(() => {
+                const idx = offlineIndexRef.current;
+                const content = OFFLINE_RESPONSES[Math.min(idx, OFFLINE_RESPONSES.length - 1)];
+                offlineIndexRef.current = idx + 1;
+                setMessages(prev => [...prev, {
+                    id: (Date.now() + 1).toString(),
+                    role: 'assistant',
+                    content,
+                }]);
+                setIsLoading(false);
+            }, 1200);
+            return;
+        }
+
+        try {
+            const response = await fetch('/api/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    messages: updatedMessages.map(m => ({ role: m.role, content: m.content })),
+                }),
+            });
+
+            if (!response.ok) {
+                throw new Error(`API error: ${response.status}`);
             }
 
-            setMessages([...newMessages, {
-                id: (Date.now() + 1).toString(),
-                role: 'assistant',
-                content: aiContent
-            }]);
-        }, 1500);
-    };
+            // Handle streaming response
+            const reader = response.body?.getReader();
+            const decoder = new TextDecoder();
+            let assistantContent = '';
 
-    const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
-        if (offlineMode) {
-            handleOfflineSend();
-        } else {
-            handleSubmit(e);
+            const assistantMsgId = (Date.now() + 1).toString();
+            setMessages(prev => [...prev, { id: assistantMsgId, role: 'assistant', content: '' }]);
+
+            if (reader) {
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+
+                    const chunk = decoder.decode(value, { stream: true });
+                    // Parse Vercel AI SDK data stream format: lines starting with '0:'
+                    const lines = chunk.split('\n');
+                    for (const line of lines) {
+                        if (line.startsWith('0:')) {
+                            try {
+                                const jsonStr = line.substring(2);
+                                const parsed = JSON.parse(jsonStr);
+                                assistantContent += parsed;
+                                setMessages(prev =>
+                                    prev.map(m => m.id === assistantMsgId
+                                        ? { ...m, content: assistantContent }
+                                        : m
+                                    )
+                                );
+                            } catch {
+                                // Sometimes chunks aren't complete JSON, ignore
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (err) {
+            console.error('Chat API error:', err);
+            setError('Could not connect to Glowie. Switching to offline demo mode.');
+            setOfflineMode(true);
+            // Still send a scripted response in offline mode
+            const idx = offlineIndexRef.current;
+            const content = OFFLINE_RESPONSES[Math.min(idx, OFFLINE_RESPONSES.length - 1)];
+            offlineIndexRef.current = idx + 1;
+            setMessages(prev => [...prev, {
+                id: (Date.now() + 2).toString(),
+                role: 'assistant',
+                content,
+            }]);
+        } finally {
+            setIsLoading(false);
         }
     };
 
-    const onKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        sendMessage(input);
+    };
+
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
-            if (offlineMode) {
-                handleOfflineSend();
-            } else {
-                append({ role: 'user', content: input });
-                handleInputChange({ target: { value: '' } } as any);
-            }
+            sendMessage(input);
         }
+    };
+
+    const handleSuggestion = (text: string) => {
+        sendMessage(text);
     };
 
     const toggleRecording = () => {
@@ -168,49 +225,29 @@ export default function ChatFlow() {
             setIsRecording(false);
             return;
         }
-
         const SpeechRecognition = window.SpeechRecognition || (window as any).webkitSpeechRecognition;
         if (!SpeechRecognition) {
-            alert("Your browser does not support the Web Speech API. Please use Chrome or Safari.");
+            alert('Voice input requires Chrome or Safari.');
             return;
         }
-
         const recognition = new SpeechRecognition();
         recognition.continuous = false;
-        recognition.interimResults = true;
+        recognition.interimResults = false;
         recognition.lang = 'en-US';
-
-        recognition.onstart = () => {
-            setIsRecording(true);
-        };
-
+        recognition.onstart = () => setIsRecording(true);
         recognition.onresult = (event: any) => {
-            let finalTranscript = '';
-            for (let i = event.resultIndex; i < event.results.length; ++i) {
-                if (event.results[i].isFinal) {
-                    finalTranscript += event.results[i][0].transcript;
-                }
-            }
-            if (finalTranscript) {
-                handleInputChange({ target: { value: input + (input ? ' ' : '') + finalTranscript } } as any);
-            }
+            const transcript = event.results[0]?.[0]?.transcript || '';
+            if (transcript) setInput(prev => prev + (prev ? ' ' : '') + transcript);
         };
-
-        recognition.onend = () => {
-            setIsRecording(false);
-        };
-
+        recognition.onend = () => setIsRecording(false);
         recognition.start();
     };
-
-    const isReportReady = messages.some(m => m.content.includes("REPORT_READY"));
-    const cleanContent = (content: string) => content.replace('REPORT_READY', '').trim();
 
     return (
         <div className="flex flex-col h-[calc(100vh-8rem)] max-w-4xl mx-auto w-full bg-white/60 backdrop-blur-xl border border-slate-200 rounded-2xl overflow-hidden shadow-2xl relative">
 
             {/* Header */}
-            <div className="px-6 py-4 bg-white/80 border-b border-slate-200 flex items-center justify-between">
+            <div className="px-6 py-4 bg-white/80 border-b border-slate-200 flex items-center justify-between flex-shrink-0">
                 <div className="flex items-center gap-4">
                     <div className="w-12 h-12 rounded-full bg-tn-primary/10 flex items-center justify-center overflow-hidden border border-tn-primary/20">
                         <GlowieIcon className="w-10 h-10" />
@@ -220,11 +257,9 @@ export default function ChatFlow() {
                             Glowie
                             <span className="bg-tn-primary/10 text-tn-primary text-[10px] px-2 py-0.5 rounded-full uppercase tracking-wider font-bold border border-tn-primary/20">AIFE AI Base</span>
                         </h2>
-                        <p className="text-xs text-slate-500 font-medium pt-0.5">Powered by Gemini Realtime Knowledge</p>
+                        <p className="text-xs text-slate-500 font-medium pt-0.5">Powered by Gemini 2.0 Flash</p>
                     </div>
                 </div>
-
-                {/* Header Actions */}
                 <div className="flex items-center gap-3">
                     {/* Voice Selector */}
                     <div className="relative">
@@ -254,14 +289,13 @@ export default function ChatFlow() {
                             </div>
                         )}
                     </div>
-
+                    {/* Mode toggle */}
                     <button
                         onClick={() => setOfflineMode(!offlineMode)}
                         className={`px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-2 transition-colors border ${offlineMode
                             ? 'bg-amber-50 text-amber-600 border-amber-200'
                             : 'bg-emerald-50 text-emerald-600 border-emerald-200 hover:bg-emerald-100'
                             }`}
-                        title={offlineMode ? "Offline Mode Active (Mock Fallback)" : "Online Mode (Gemini)"}
                     >
                         {offlineMode ? <WifiOff className="w-3.5 h-3.5" /> : <RefreshCcw className="w-3.5 h-3.5" />}
                         {offlineMode ? 'Offline Mode' : 'Online Mode'}
@@ -270,110 +304,103 @@ export default function ChatFlow() {
             </div>
 
             {/* Error Banner */}
-            {error && !offlineMode && (
-                <div className="bg-rose-50 text-rose-600 p-3 flex items-center gap-3 text-sm border-b border-rose-200">
+            {error && (
+                <div className="bg-rose-50 text-rose-600 p-3 flex items-center gap-3 text-sm border-b border-rose-200 flex-shrink-0">
                     <AlertCircle className="w-4 h-4 shrink-0" />
-                    <p>
-                        Error connecting to Glowie via Gemini.
-                        <button onClick={() => setOfflineMode(true)} className="ml-2 font-bold underline hover:text-rose-700">
-                            Switch to Offline Demo Mode
-                        </button>
-                    </p>
+                    <p>{error}</p>
                 </div>
             )}
 
             {/* Messages Area */}
             <div className="flex-1 overflow-y-auto p-6 space-y-6">
-                {/* Static welcome message — rendered independently from useChat state */}
+                {/* Static Welcome Message */}
                 <div className="flex justify-start">
                     <div className="w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center mr-3 mt-1 flex-shrink-0 shadow-sm">
                         <GlowieIcon className="w-6 h-6" />
                     </div>
                     <div className="max-w-[80%] rounded-2xl px-5 py-3.5 shadow-sm bg-white text-slate-800 border border-slate-200 rounded-tl-sm">
                         <div className="leading-relaxed text-[15px]">
-                            {formatMessageText(WELCOME_MESSAGE.content)}
+                            {formatMessageText(WELCOME_CONTENT, false)}
                         </div>
                     </div>
                 </div>
+
+                {/* Dynamic Messages */}
                 <AnimatePresence initial={false}>
-                    {messages.map((msg) => {
-                        msgRole = msg.role; // Set the hack before formatMessageText is called
-                        return (
-                            <motion.div
-                                key={msg.id}
-                                initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                                animate={{ opacity: 1, y: 0, scale: 1 }}
-                                transition={{ duration: 0.2 }}
-                                className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
-                            >
-                                {msg.role !== 'user' && (
-                                    <div className="w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center mr-3 mt-1 flex-shrink-0 shadow-sm">
-                                        <GlowieIcon className="w-6 h-6" />
-                                    </div>
-                                )}
-                                <div
-                                    className={`max-w-[80%] rounded-2xl px-5 py-3.5 shadow-sm ${msg.role === 'user'
-                                        ? 'bg-gradient-to-r from-tn-primary to-blue-500 text-white rounded-tr-sm shadow-md'
-                                        : 'bg-white text-slate-800 border border-slate-200 rounded-tl-sm shadow-sm'
-                                        }`}
-                                >
-                                    <div className="leading-relaxed text-[15px]">
-                                        {msg.role === 'user' ? cleanContent(msg.content) : formatMessageText(cleanContent(msg.content))}
-                                    </div>
-                                </div>
-                            </motion.div>
-                        );
-                    })}
-
-                    {(isLoading && !offlineMode) && (
+                    {messages.map((msg) => (
                         <motion.div
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            className="flex justify-start"
+                            key={msg.id}
+                            initial={{ opacity: 0, y: 10, scale: 0.97 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            transition={{ duration: 0.2 }}
+                            className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
                         >
-                            <div className="w-8 h-8 rounded-full bg-white border border-slate-200 shadow-sm flex items-center justify-center mr-3 flex-shrink-0">
-                                <GlowieIcon className="w-6 h-6 grayscale opacity-60" />
-                            </div>
-                            <div className="bg-white border border-slate-200 shadow-sm rounded-2xl rounded-tl-sm px-5 py-4 flex gap-2 items-center text-slate-500 text-sm">
-                                <div className="flex gap-1">
-                                    <span className="w-1.5 h-1.5 rounded-full bg-tn-primary/60 animate-bounce" style={{ animationDelay: '0ms' }}></span>
-                                    <span className="w-1.5 h-1.5 rounded-full bg-tn-primary/60 animate-bounce" style={{ animationDelay: '150ms' }}></span>
-                                    <span className="w-1.5 h-1.5 rounded-full bg-tn-primary/60 animate-bounce" style={{ animationDelay: '300ms' }}></span>
+                            {msg.role !== 'user' && (
+                                <div className="w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center mr-3 mt-1 flex-shrink-0 shadow-sm">
+                                    <GlowieIcon className="w-6 h-6" />
                                 </div>
-                                <span className="ml-2 font-medium">Glowie is thinking...</span>
+                            )}
+                            <div className={`max-w-[80%] rounded-2xl px-5 py-3.5 shadow-sm ${msg.role === 'user'
+                                ? 'bg-gradient-to-r from-tn-primary to-blue-500 text-white rounded-tr-sm shadow-md'
+                                : 'bg-white text-slate-800 border border-slate-200 rounded-tl-sm'
+                                }`}>
+                                <div className="leading-relaxed text-[15px]">
+                                    {formatMessageText(cleanContent(msg.content), msg.role === 'user')}
+                                </div>
                             </div>
                         </motion.div>
-                    )}
-
-                    {isReportReady && (
-                        <motion.div
-                            initial={{ opacity: 0, scale: 0.9 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            className="flex justify-center mt-8 pt-4 border-t border-slate-200"
-                        >
-                            <button
-                                onClick={() => navigate('/report')}
-                                className="bg-gradient-to-r from-tn-secondary to-tn-accent hover:opacity-90 text-white font-bold px-8 py-3 rounded-xl transition-all shadow-lg flex items-center gap-2"
-                            >
-                                <Sparkles className="w-5 h-5" /> View Your Personalized Action Report
-                            </button>
-                        </motion.div>
-                    )}
-
+                    ))}
                 </AnimatePresence>
+
+                {/* Typing Indicator */}
+                {isLoading && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="flex justify-start"
+                    >
+                        <div className="w-8 h-8 rounded-full bg-white border border-slate-200 shadow-sm flex items-center justify-center mr-3 flex-shrink-0">
+                            <GlowieIcon className="w-6 h-6 grayscale opacity-60" />
+                        </div>
+                        <div className="bg-white border border-slate-200 shadow-sm rounded-2xl rounded-tl-sm px-5 py-4 flex gap-2 items-center text-slate-500 text-sm">
+                            <div className="flex gap-1">
+                                <span className="w-1.5 h-1.5 rounded-full bg-tn-primary/60 animate-bounce" style={{ animationDelay: '0ms' }}></span>
+                                <span className="w-1.5 h-1.5 rounded-full bg-tn-primary/60 animate-bounce" style={{ animationDelay: '150ms' }}></span>
+                                <span className="w-1.5 h-1.5 rounded-full bg-tn-primary/60 animate-bounce" style={{ animationDelay: '300ms' }}></span>
+                            </div>
+                            <span className="ml-2 font-medium">Glowie is thinking...</span>
+                        </div>
+                    </motion.div>
+                )}
+
+                {/* Report Ready CTA */}
+                {isReportReady && (
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="flex justify-center mt-8 pt-4 border-t border-slate-200"
+                    >
+                        <button
+                            onClick={() => navigate('/report')}
+                            className="bg-gradient-to-r from-tn-secondary to-tn-accent hover:opacity-90 text-white font-bold px-8 py-3 rounded-xl transition-all shadow-lg flex items-center gap-2"
+                        >
+                            <Sparkles className="w-5 h-5" /> View Your Personalized Action Report
+                        </button>
+                    </motion.div>
+                )}
+
                 <div ref={messagesEndRef} />
             </div>
 
-            {/* Suggestions */}
-            {!isReportReady && messages.length < 3 && (
-                <div className="px-5 pb-2 flex gap-2 overflow-x-auto hide-scrollbar">
+            {/* Quick Suggestions */}
+            {!isReportReady && messages.length === 0 && (
+                <div className="px-5 pb-2 flex gap-2 overflow-x-auto flex-shrink-0">
                     {["I'm a Technology Director", "I'm a School Administrator", "I'm a Classroom Teacher"].map(suggestion => (
                         <button
                             key={suggestion}
-                            onClick={() => {
-                                handleInputChange({ target: { value: suggestion } } as any);
-                            }}
-                            className="whitespace-nowrap px-4 py-2 bg-white/50 hover:bg-white text-slate-600 border border-slate-200 rounded-full text-xs font-medium transition-colors shadow-sm"
+                            onClick={() => handleSuggestion(suggestion)}
+                            disabled={isLoading}
+                            className="whitespace-nowrap px-4 py-2 bg-white/50 hover:bg-white text-slate-600 border border-slate-200 rounded-full text-xs font-medium transition-colors shadow-sm disabled:opacity-50"
                         >
                             {suggestion}
                         </button>
@@ -382,43 +409,38 @@ export default function ChatFlow() {
             )}
 
             {/* Input Area */}
-            <div className="p-4 bg-white/60 border-t border-slate-200">
-                <form onSubmit={onSubmit} className="flex flex-col gap-2 bg-white p-2.5 rounded-xl border border-slate-200 shadow-sm focus-within:border-tn-primary/50 focus-within:ring-2 focus-within:ring-tn-primary/10 transition-all">
+            <div className="p-4 bg-white/60 border-t border-slate-200 flex-shrink-0">
+                <form onSubmit={handleSubmit} className="flex flex-col gap-2 bg-white p-2.5 rounded-xl border border-slate-200 shadow-sm focus-within:border-tn-primary/50 focus-within:ring-2 focus-within:ring-tn-primary/10 transition-all">
                     <textarea
                         value={input}
-                        onChange={handleInputChange}
-                        onKeyDown={onKeyDown}
-                        placeholder={isReportReady ? "Conversation finished. Click above to view report." : "Ask Glowie about RISE, AGENCY, or PROMPT..."}
-                        disabled={isReportReady || (isLoading && !offlineMode)}
+                        onChange={(e) => setInput(e.target.value)}
+                        onKeyDown={handleKeyDown}
+                        placeholder={isReportReady ? 'Consultation complete — view your report above!' : 'Ask Glowie about RISE, AGENCY, or PROMPT...'}
+                        disabled={isReportReady || isLoading}
                         className="flex-1 max-h-32 min-h-[44px] bg-transparent resize-none outline-none text-slate-800 p-2 placeholder-slate-400 disabled:opacity-50"
                         rows={1}
                     />
-
                     <div className="flex items-center justify-between pt-2 border-t border-slate-100">
                         <div className="flex items-center gap-1.5">
                             <button
                                 type="button"
-                                className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-lg transition-colors flex items-center gap-2 text-xs font-medium"
-                                onClick={() => alert("File uploads disabled for AIFE Prototype.")}
+                                className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-lg transition-colors"
+                                onClick={() => alert('File uploads are not enabled for this prototype.')}
                             >
                                 <Paperclip className="w-4 h-4" />
                             </button>
                             <button
                                 type="button"
                                 onClick={toggleRecording}
-                                className={`p-2 rounded-lg transition-colors flex flex-shrink-0 ${isRecording
-                                    ? 'bg-rose-50 text-rose-500'
-                                    : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'
-                                    }`}
+                                className={`p-2 rounded-lg transition-colors flex-shrink-0 ${isRecording ? 'bg-rose-50 text-rose-500' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'}`}
                             >
                                 {isRecording ? <Square className="w-4 h-4 fill-current animate-pulse" /> : <Mic className="w-4 h-4" />}
                             </button>
                         </div>
-
                         <button
                             type="submit"
-                            disabled={!input.trim() || isReportReady || (isLoading && !offlineMode)}
-                            className="px-4 py-2 bg-tn-primary hover:bg-tn-primary/80 disabled:bg-slate-800 disabled:text-slate-500 text-white rounded-lg transition-colors flex items-center gap-2 font-medium text-sm"
+                            disabled={!input.trim() || isReportReady || isLoading}
+                            className="px-4 py-2 bg-tn-primary hover:bg-tn-primary/80 disabled:bg-slate-200 disabled:text-slate-400 text-white rounded-lg transition-colors flex items-center gap-2 font-medium text-sm"
                         >
                             <span>Send</span>
                             <Send className="w-4 h-4" />
