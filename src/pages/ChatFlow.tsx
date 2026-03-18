@@ -249,13 +249,16 @@ export default function ChatFlow() {
             {/* Header */}
             <div className="px-6 py-4 bg-white/80 border-b border-slate-200 flex items-center justify-between flex-shrink-0">
                 <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-full bg-tn-primary/10 flex items-center justify-center overflow-hidden border border-tn-primary/20">
-                        <GlowieIcon className="w-10 h-10" />
+                    <div className="w-12 h-12 rounded-full bg-tn-primary/10 flex items-center justify-center overflow-hidden border border-tn-primary/20 p-1">
+                        <GlowieIcon className="w-full h-full" />
                     </div>
                     <div>
                         <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
                             Glowie
-                            <span className="bg-tn-primary/10 text-tn-primary text-[10px] px-2 py-0.5 rounded-full uppercase tracking-wider font-bold border border-tn-primary/20">AIFE AI Base</span>
+                            <div className="flex items-center gap-1.5 bg-tn-primary/10 text-tn-primary text-[10px] px-2 py-0.5 rounded-full uppercase tracking-wider font-bold border border-tn-primary/20">
+                                <img src="/logo.png" alt="" className="w-3 h-3 object-contain" />
+                                AIFE AI Base
+                            </div>
                         </h2>
                         <p className="text-xs text-slate-500 font-medium pt-0.5">Powered by Gemini 2.0 Flash</p>
                     </div>

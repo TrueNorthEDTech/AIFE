@@ -189,26 +189,31 @@ export default function Report() {
                 <div className="absolute top-0 left-0 w-full h-3 bg-gradient-to-r from-tn-primary via-tn-secondary to-tn-accent" />
 
                 {/* Header */}
-                <header className="flex flex-col sm:flex-row justify-between items-start sm:items-end border-b border-slate-200 pb-8 mb-8 gap-4 pt-2">
-                    <div>
-                        <h2 className="text-3xl font-serif font-bold text-slate-900 mb-2">AIFE Session Insights</h2>
-                        <p className="text-slate-500 font-medium">True North • Designing for AGENCY</p>
-                        <div className="flex gap-2 mt-3 flex-wrap">
-                            {report?.role && (
-                                <span className="text-xs px-3 py-1 rounded-full bg-slate-100 text-slate-600 font-semibold border border-slate-200">
-                                    {report.role}
-                                </span>
-                            )}
-                            {report?.framework && (
-                                <span className={`text-xs px-3 py-1 rounded-full font-bold border ${colors.badge}`}>
-                                    {report.framework} Framework
-                                </span>
-                            )}
-                            {report?.stage && (
-                                <span className="text-xs px-3 py-1 rounded-full bg-purple-100 text-purple-700 font-semibold border border-purple-200">
-                                    {report.stage}
-                                </span>
-                            )}
+                <header className="flex flex-col sm:flex-row justify-between items-start sm:items-end border-b border-slate-200 pb-8 mb-8 gap-4 pt-4">
+                    <div className="flex items-start gap-6">
+                        <div className="w-16 h-16 md:w-20 md:h-20 shrink-0">
+                            <img src="/logo.png" alt="True North Logo" className="w-full h-full object-contain drop-shadow-md" />
+                        </div>
+                        <div>
+                            <h2 className="text-3xl font-serif font-bold text-slate-900 mb-2">AIFE Session Insights</h2>
+                            <p className="text-slate-500 font-medium">True North · Designing for AGENCY</p>
+                            <div className="flex gap-2 mt-3 flex-wrap">
+                                {report?.role && (
+                                    <span className="text-xs px-3 py-1 rounded-full bg-slate-100 text-slate-600 font-semibold border border-slate-200">
+                                        {report.role}
+                                    </span>
+                                )}
+                                {report?.framework && (
+                                    <span className={`text-xs px-3 py-1 rounded-full font-bold border ${colors.badge}`}>
+                                        {report.framework} Framework
+                                    </span>
+                                )}
+                                {report?.stage && (
+                                    <span className="text-xs px-3 py-1 rounded-full bg-purple-100 text-purple-700 font-semibold border border-purple-200">
+                                        {report.stage}
+                                    </span>
+                                )}
+                            </div>
                         </div>
                     </div>
                     <div className="text-right">

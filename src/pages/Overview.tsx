@@ -119,28 +119,61 @@ export default function Overview() {
 
             {/* ── Hero ── */}
             <motion.div
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="text-center space-y-6 pt-4"
+                transition={{ duration: 0.8, ease: "easeOut" }}
+                className="text-center space-y-8 pt-8 relative pb-4"
             >
-                {/* Compass Logo Mark */}
-                <div className="flex justify-center mb-2">
-                    <div className="relative w-20 h-20">
-                        <div className="absolute inset-0 rounded-full border-8 border-transparent"
-                            style={{ background: 'conic-gradient(#EC8B29 0deg 120deg, #357DB8 120deg 240deg, #5BB76A 240deg 360deg)', borderRadius: '50%' }}>
+                {/* Official True North Logo - Interactive */}
+                <div className="flex justify-center mb-4 relative">
+                    <motion.div
+                        className="relative group cursor-pointer"
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                    >
+                        {/* Soft Brand Glow behind logo */}
+                        <div className="absolute inset-0 bg-gradient-to-tr from-tn-primary/20 via-tn-secondary/10 to-tn-accent/20 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-700 animate-pulse"></div>
+
+                        <div className="relative w-32 h-32 md:w-40 md:h-40 flex items-center justify-center">
+                            <motion.img
+                                src="/logo.png"
+                                alt="True North Logo"
+                                className="w-full h-full object-contain drop-shadow-2xl z-10"
+                                initial={{ rotate: -10, opacity: 0, scale: 0.8 }}
+                                animate={{ rotate: 0, opacity: 1, scale: 1 }}
+                                transition={{
+                                    type: "spring",
+                                    stiffness: 100,
+                                    damping: 15,
+                                    delay: 0.2
+                                }}
+                            />
+
+                            {/* Interactive Ring Elements (Subtle CSS animations) */}
+                            <div className="absolute inset-0 border-2 border-tn-primary/10 rounded-full animate-[spin_20s_linear_infinite] pointer-events-none"></div>
+                            <div className="absolute inset-4 border border-tn-secondary/5 rounded-full animate-[spin_15s_linear_infinite_reverse] pointer-events-none"></div>
                         </div>
-                        <div className="absolute inset-[6px] bg-white rounded-full flex items-center justify-center">
-                            <Compass className="w-8 h-8" style={{ color: '#D13038' }} />
-                        </div>
-                    </div>
+                    </motion.div>
                 </div>
 
-                <h1 className="text-4xl md:text-5xl font-serif font-bold tracking-tight text-gray-900">
-                    Welcome to the{' '}
-                    <span className="text-transparent bg-clip-text" style={{ backgroundImage: 'linear-gradient(to right, #EC8B29, #D13038)' }}>
-                        AIFE Experience
-                    </span>
-                </h1>
+                <div className="space-y-4">
+                    <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.4 }}
+                    >
+                        <span className="px-4 py-1.5 rounded-full bg-slate-100 text-slate-500 text-xs font-bold uppercase tracking-widest border border-slate-200">
+                            Designing for AGENCY · 2026
+                        </span>
+                    </motion.div>
+
+                    <h1 className="text-5xl md:text-7xl font-serif font-black tracking-tight text-slate-900 leading-tight">
+                        Find Your{' '}
+                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-tn-primary via-tn-secondary to-tn-accent">
+                            True North
+                        </span>
+                    </h1>
+                </div>
                 <p className="text-lg md:text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
                     A 15-minute guided conversation with Glowie — your True North AI consultant — designed to illuminate
                     your pathway to genuine human agency in an AI-integrated world.
