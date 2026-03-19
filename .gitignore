@@ -27,3 +27,4 @@ public/slides_knowledge.txt
 *.njsproj
 *.sln
 *.sw?
+.vercel

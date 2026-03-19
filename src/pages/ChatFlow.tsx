@@ -103,7 +103,10 @@ export default function ChatFlow() {
     }, [messages, isLoading]);
 
     const isReportReady = messages.some(m => m.content.includes('REPORT_READY'));
-    const cleanContent = (content: string) => content.replace('REPORT_READY', '').trim();
+    const cleanContent = (content: string) => content
+        .replace('REPORT_READY', '')
+        .replace(/<thinking>[\s\S]*?<\/thinking>/g, '') // Hide Glowie's internal cognitive logic
+        .trim();
 
     // Hydrate from localStorage on mount
     useEffect(() => {
