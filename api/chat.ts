@@ -50,9 +50,18 @@ ${SLIDES_KNOWLEDGE}
 `;
 
 export default async function reqHandler(req: Request) {
+    console.log("Chat API request received");
     try {
         const { messages } = await req.json();
         const GOOGLE_KEY = process.env.GOOGLE_GENERATIVE_AI_KEY;
+
+        if (!GOOGLE_KEY) {
+            console.error("CRITICAL: GOOGLE_GENERATIVE_AI_KEY is missing on server.");
+            return new Response(JSON.stringify({ error: 'API Key Missing. Check Vercel Env Vars.' }), {
+                status: 500,
+                headers: { 'Content-Type': 'application/json' }
+            });
+        }
 
         const result = streamText({
             model: google('gemini-2.0-flash', { apiKey: GOOGLE_KEY }),
@@ -63,6 +72,9 @@ export default async function reqHandler(req: Request) {
         return result.toDataStreamResponse();
     } catch (error) {
         console.error('Error with Google Gemini API:', error);
-        return new Response(JSON.stringify({ error: 'Internal Server Error' }), { status: 500 });
+        return new Response(JSON.stringify({ error: `Server error: ${error instanceof Error ? error.message : 'Unknown'}` }), {
+            status: 500,
+            headers: { 'Content-Type': 'application/json' }
+        });
     }
 }
