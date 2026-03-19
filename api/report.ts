@@ -1,14 +1,20 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { createClient } from '@supabase/supabase-js';
 
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GENERATIVE_AI_KEY || '');
+
+// Initialize Supabase in the backend
+const supabaseUrl = process.env.VITE_SUPABASE_URL || '';
+const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY || '';
+const supabase = (supabaseUrl && supabaseKey) ? createClient(supabaseUrl, supabaseKey) : null;
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Method not allowed' });
     }
 
-    const { messages } = req.body;
+    const { messages, name, email } = req.body;
 
     if (!messages?.length) {
         return res.status(400).json({ error: 'No conversation provided.' });
@@ -87,6 +93,23 @@ JSON STRUCTURE REQUIREMENTS:
         // Strip markdown code blocks if AI wraps the JSON
         const jsonStr = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
         const report = JSON.parse(jsonStr);
+
+        // DATA CAPTURE: Save the lead, transcript, and report to Supabase
+        if (supabase && email) {
+            const { error } = await supabase.from('aife_assessments').insert([{
+                user_email: email,
+                user_name: name || 'Anonymous',
+                transcript: messages,
+                report_data: report
+            }]);
+            
+            if (error) {
+                console.error("Supabase Analytics Save Error:", error);
+                // We don't throw here; we still want to return the report to the user even if DB fails
+            } else {
+                console.log(`Successfully captured analytics for ${email}`);
+            }
+        }
 
         return res.status(200).json({ report });
     } catch (error) {

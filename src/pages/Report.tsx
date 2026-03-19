@@ -62,18 +62,35 @@ export default function Report() {
     const [report, setReport] = useState<ReportData | null>(null);
     const [isGenerating, setIsGenerating] = useState(true);
     const [hasConversation, setHasConversation] = useState(false);
+    
+    // Lead Capture State
+    const [showLeadForm, setShowLeadForm] = useState(false);
+    const [leadName, setLeadName] = useState('');
+    const [leadEmail, setLeadEmail] = useState('');
 
     useEffect(() => {
-        generateReport();
+        const rawConversation = localStorage.getItem('glowieConversation') || sessionStorage.getItem('glowieConversation');
+        if (!rawConversation) {
+            // No conversation — show the default report
+            setHasConversation(false);
+            setReport(DEFAULT_REPORT);
+            setIsGenerating(false);
+        } else {
+            setHasConversation(true);
+            setIsGenerating(false);
+            setShowLeadForm(true); // Require form before generating
+        }
     }, []);
 
-    const generateReport = async () => {
+    const generateReport = async (e?: React.FormEvent) => {
+        if (e) e.preventDefault();
         setIsGenerating(true);
+        setShowLeadForm(false);
+        
         // Prioritize localStorage for cross-tab persistence, fallback to sessionStorage
         const rawConversation = localStorage.getItem('glowieConversation') || sessionStorage.getItem('glowieConversation');
 
         if (!rawConversation) {
-            // No conversation — show the default report
             setHasConversation(false);
             setReport(DEFAULT_REPORT);
             setIsGenerating(false);
@@ -86,7 +103,11 @@ export default function Report() {
             const res = await fetch('/api/report', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ messages }),
+                body: JSON.stringify({ 
+                    messages,
+                    name: leadName,
+                    email: leadEmail
+                }),
             });
 
             if (res.ok) {
@@ -139,6 +160,55 @@ export default function Report() {
                     <h2 className="text-2xl font-bold text-slate-900 mb-2">Generating Your Report...</h2>
                     <p className="text-slate-500">Glowie is analyzing your session to craft personalized insights.</p>
                 </div>
+            </div>
+        );
+    }
+
+    if (showLeadForm) {
+        return (
+            <div className="flex flex-col items-center justify-center h-[calc(100vh-12rem)] max-w-md mx-auto w-full px-4">
+                <motion.div 
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="bg-white p-8 rounded-2xl shadow-xl border border-slate-200 w-full relative overflow-hidden"
+                >
+                    <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-tn-primary to-tn-accent" />
+                    <BookOpen className="w-12 h-12 text-tn-primary mb-6" />
+                    <h2 className="text-2xl font-bold text-slate-900 mb-2">Unlock Your True North Report</h2>
+                    <p className="text-slate-600 mb-8 text-sm leading-relaxed">Glowie has finished analyzing your session. Enter your details to generate your personalized PDF assessment and action plan.</p>
+                    
+                    <form onSubmit={generateReport} className="space-y-4">
+                        <div>
+                            <label className="block text-sm font-semibold text-slate-700 mb-1">Full Name</label>
+                            <input 
+                                required
+                                type="text" 
+                                value={leadName}
+                                onChange={(e) => setLeadName(e.target.value)}
+                                className="w-full px-4 py-3 rounded-lg bg-slate-50 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-tn-primary focus:bg-white transition-all font-medium"
+                                placeholder="Jane Doe"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-semibold text-slate-700 mb-1">Email Address</label>
+                            <input 
+                                required
+                                type="email" 
+                                value={leadEmail}
+                                onChange={(e) => setLeadEmail(e.target.value)}
+                                className="w-full px-4 py-3 rounded-lg bg-slate-50 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-tn-primary focus:bg-white transition-all font-medium"
+                                placeholder="jane@school.edu"
+                            />
+                        </div>
+                        <button 
+                            type="submit"
+                            className="w-full py-3.5 bg-tn-primary text-white font-bold rounded-lg hover:bg-tn-primary/90 transition-colors mt-4 shadow-md flex justify-center items-center gap-2"
+                        >
+                            <Sparkles className="w-4 h-4" />
+                            Generate My Report
+                        </button>
+                    </form>
+                </motion.div>
             </div>
         );
     }
