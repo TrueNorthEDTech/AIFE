@@ -3,23 +3,13 @@ import { google } from '@ai-sdk/google';
 
 // Vercel Serverless Function configuration
 export const config = {
-    runtime: 'nodejs',
+    runtime: 'edge', // Using Edge runtime to support Web Standards (Request/Response)
 };
 
-import fs from 'fs';
-import path from 'path';
+// Import knowledge base files as TS modules instead of reading from fs
+import { BOOK_KNOWLEDGE } from './knowledge/book_knowledge';
+import { SLIDES_KNOWLEDGE } from './knowledge/slides_knowledge';
 
-// Read knowledge base files
-let BOOK_KNOWLEDGE = "";
-let SLIDES_KNOWLEDGE = "";
-
-try {
-    const knowledgeDir = path.join(process.cwd(), 'api', 'knowledge');
-    BOOK_KNOWLEDGE = fs.readFileSync(path.join(knowledgeDir, 'book_knowledge.txt'), 'utf-8');
-    SLIDES_KNOWLEDGE = fs.readFileSync(path.join(knowledgeDir, 'slides_knowledge.txt'), 'utf-8');
-} catch (error) {
-    console.error("Warning: Could not load knowledge base files. Glowie will fall back to base knowledge.", error);
-}
 
 const SYSTEM_PROMPT = `
 You are Glowie, the charismatic AI consultant and mascot from the book "Designing for AGENCY" by Nick Garvin and Dion Norman.
