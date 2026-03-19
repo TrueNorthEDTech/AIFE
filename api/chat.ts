@@ -78,7 +78,7 @@ export default async function reqHandler(req: Request) {
             messages,
         });
 
-        return result.toDataStreamResponse();
+        return result.toTextStreamResponse();
     } catch (error) {
         console.error('Error with Google Gemini API:', error);
         return new Response(JSON.stringify({ error: `Server error: ${error instanceof Error ? error.message : 'Unknown'}` }), {
